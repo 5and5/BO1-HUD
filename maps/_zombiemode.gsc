@@ -1631,6 +1631,7 @@ onPlayerSpawned()
 
 		self cameraactivate(false);
 
+
 		self add_to_spectate_list();
 
 		self.num_perks = 0;
@@ -6634,7 +6635,7 @@ timer_hud()
 	{
 		timer SetTimerUp(7);
 	} else
-	timer SetTimerUp(0.6);
+	timer SetTimerUp(1);
 }
 
 health_bar_hud()
@@ -6727,7 +6728,7 @@ hud_end( hud )
 
 hud_fade_in( hud )
 {
-	hud fadeOverTime(1);
+	hud fadeOverTime(0.6);
 	hud.alpha = 1;
 }
 
