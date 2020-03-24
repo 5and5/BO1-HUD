@@ -1631,7 +1631,6 @@ onPlayerSpawned()
 
 		self cameraactivate(false);
 
-
 		self add_to_spectate_list();
 
 		self.num_perks = 0;
@@ -1685,7 +1684,9 @@ onPlayerSpawned()
 
 				self thread player_grenade_watcher();
 
+				//custom hud
 				self thread zombies_remaining_hud();
+				//self thread drop_tracker_hud();
 				self thread health_bar_hud();
 
 			}
@@ -6591,9 +6592,9 @@ zombies_remaining_hud()
 	zombs_remaining.alignX = "left";
 	zombs_remaining.alignY = "top";
 	zombs_remaining.y += 2;
-	zombs_remaining.x += 4;
+	zombs_remaining.x += 5;
 	zombs_remaining.foreground = true;
-	zombs_remaining.fontScale = 1.5;
+	zombs_remaining.fontScale = 1.4;
 	zombs_remaining.alpha = 0;
 	zombs_remaining.color = ( 1.0, 1.0, 1.0 );
 	level.hudelem_count++;
@@ -6604,7 +6605,40 @@ zombies_remaining_hud()
 	while(1)
 	{
 		zombs = level.zombie_total + get_enemy_count();
-		zombs_remaining SetText("Remaining: " + zombs);
+		zombs_remaining SetText("Zombies: " + zombs);
+		wait 0.05;
+	}
+}
+
+drop_tracker_hud()
+{
+	self endon("disconnect");
+	self endon("end_game");
+
+	hud_wait();
+
+	num_drops = NewClientHudElem( self );
+	num_drops.horzAlign = "left";
+	num_drops.vertAlign = "top";
+	num_drops.alignX = "left";
+	num_drops.alignY = "top";
+	num_drops.y += 20;
+	num_drops.x += 4;
+	num_drops.foreground = true;
+	num_drops.fontScale = 1.5;
+	num_drops.alpha = 0;
+	num_drops.text = "0";
+	num_drops.color = ( 1.0, 1.0, 1.0 );
+	num_drops.hidewheninmenu = 1;
+	level.hudelem_count++;
+
+	hud_fade_in(num_drops);
+	self thread hud_end(num_drops);
+
+	while(1)
+	{
+		drops = level.drop_tracker_index;
+		num_drops SetText("Drops: " + drops);
 		wait 0.05;
 	}
 }
@@ -6621,9 +6655,9 @@ timer_hud()
 	timer.alignX = "right";
 	timer.alignY = "top";
 	timer.y += 2;
-	timer.x -= 4;
+	timer.x -= 5;
 	timer.foreground = true;
-	timer.fontScale = 1.5;
+	timer.fontScale = 1.4;
 	timer.alpha = 0;
 	timer.color = ( 1.0, 1.0, 1.0 );
 	level.hudelem_count++;
@@ -6633,7 +6667,7 @@ timer_hud()
 
 	if (level.script == "zombie_cosmodrome")
 	{
-		timer SetTimerUp(7);
+		timer SetTimerUp(7.5);
 	} else
 	timer SetTimerUp(1);
 }
@@ -6645,7 +6679,7 @@ health_bar_hud()
 
 	hud_wait();
 
-	width = 112.5;
+	width = 113;
 	height = 6;
 
 	barElem = newClientHudElem(	self );
