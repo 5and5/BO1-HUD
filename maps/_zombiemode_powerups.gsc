@@ -137,11 +137,6 @@ init_powerups()
 	// Randomize the order
 	randomize_powerups();
 	level.zombie_powerup_index = 0;
-
-	// Custom HUD
-	level.drop_tracker_index = 0;
-	level.num_unavailable_powerups = 0;
-
 	randomize_powerups();
 
 	// Rare powerups
@@ -345,36 +340,6 @@ randomize_powerups()
 }
 
 //
-// Get number of powerups not active
-//
-
-get_num_unavailable_powerups() {
-	num_unavailable_powerups = 0;
-
-	if (level.script == "zombie_temple" || level.script == "zombie_coast" || level.script == "zombie_moon" || level.script == "zombie_pentagon" || level.script == "zombie_cosmodrome" ||
-		level.script == "zombie_theater")
-	{
-		if (level.zombie_vars["zombie_powerup_fire_sale_on"] == true ||
-				   level.chest_moves < 1 )
-		{
-			num_unavailable_powerups++;
-		}
-
-		if (level.script != "zombie_theater" && minigun_no_drop())
-		{
-			num_unavailable_powerups++;
-		}
-	}
-
-	if (get_num_window_destroyed() < 5 )
-	{
-		num_unavailable_powerups++;
-	}
-
-	return num_unavailable_powerups;
-}
-
-//
 // Get the next powerup in the list
 //
 get_next_powerup()
@@ -429,11 +394,6 @@ get_valid_powerup()
 		if( powerup == "carpenter" && get_num_window_destroyed() < 5 )
 		{
 			powerup = get_next_powerup();
-			level.drop_tracker_index--;
-			if(level.drop_tracker_index < 0)
-			{
-				level.drop_tracker_index = 0;
-			}
 		}
 
 		// Don't bring up fire_sale if the box hasn't moved or it it's already on
@@ -492,14 +452,6 @@ get_valid_powerup()
 		}
 		else
 		{
-			level.drop_tracker_index++;
-
-			level.num_unavailable_powerups = get_num_unavailable_powerups();
-			if( level.drop_tracker_index >= (level.zombie_powerup_array.size - level.num_unavailable_powerups))
-			{
-				level.drop_tracker_index = 0;
-			}
-
 			return( powerup );
 		}
 	}

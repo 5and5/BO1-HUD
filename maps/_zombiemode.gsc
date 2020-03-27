@@ -241,7 +241,7 @@ post_all_players_connected()
 		level.music_override = false;
 	}
 
-	level thread timer_hud();
+	//level thread timer_hud();
 
 }
 
@@ -1685,8 +1685,7 @@ onPlayerSpawned()
 				self thread player_grenade_watcher();
 
 				//custom hud
-				self thread zombies_remaining_hud();
-				//self thread drop_tracker_hud();
+				//self thread zombies_remaining_hud();
 				self thread health_bar_hud();
 
 			}
@@ -6581,64 +6580,30 @@ set_sidequest_completed(id)
 
 zombies_remaining_hud()
 {
-	self endon("disconnect");
-	self endon("end_game");
+	level endon("disconnect");
+	level endon("end_game");
 
 	hud_wait();
 
-	zombs_remaining = NewClientHudElem( self );
-	zombs_remaining.horzAlign = "left";
-	zombs_remaining.vertAlign = "top";
-	zombs_remaining.alignX = "left";
-	zombs_remaining.alignY = "top";
-	zombs_remaining.y += 2;
-	zombs_remaining.x += 5;
-	zombs_remaining.foreground = true;
-	zombs_remaining.fontScale = 1.4;
-	zombs_remaining.alpha = 0;
-	zombs_remaining.color = ( 1.0, 1.0, 1.0 );
-	level.hudelem_count++;
+	remaining_text = create_hud("left", "top");
+	remaining_text.y += 2;
+	remaining_text.x += 5;
+	remaining_text SetText("Remaining: ");
 
-	hud_fade_in(zombs_remaining);
-	self thread hud_end(zombs_remaining);
+	zombies_remaining = create_hud("left", "top");
+	zombies_remaining.y += 2;
+	zombies_remaining.x += 70;
+
+	hud_fade_in(remaining_text);
+	self thread hud_end(remaining_text);
+	hud_fade_in(zombies_remaining);
+	self thread hud_end(zombies_remaining);
 
 	while(1)
 	{
-		zombs = level.zombie_total + get_enemy_count();
-		zombs_remaining SetText("Zombies: " + zombs);
-		wait 0.05;
-	}
-}
+		zombies = level.zombie_total + get_enemy_count();
+		zombies_remaining setValue(zombies);
 
-drop_tracker_hud()
-{
-	self endon("disconnect");
-	self endon("end_game");
-
-	hud_wait();
-
-	num_drops = NewClientHudElem( self );
-	num_drops.horzAlign = "left";
-	num_drops.vertAlign = "top";
-	num_drops.alignX = "left";
-	num_drops.alignY = "top";
-	num_drops.y += 20;
-	num_drops.x += 4;
-	num_drops.foreground = true;
-	num_drops.fontScale = 1.5;
-	num_drops.alpha = 0;
-	num_drops.text = "0";
-	num_drops.color = ( 1.0, 1.0, 1.0 );
-	num_drops.hidewheninmenu = 1;
-	level.hudelem_count++;
-
-	hud_fade_in(num_drops);
-	self thread hud_end(num_drops);
-
-	while(1)
-	{
-		drops = level.drop_tracker_index;
-		num_drops SetText("Drops: " + drops);
 		wait 0.05;
 	}
 }
@@ -6646,6 +6611,7 @@ drop_tracker_hud()
 timer_hud()
 {
 	self endon("disconnect");
+	self endon("end_game");
 
 	hud_wait();
 
@@ -6669,7 +6635,7 @@ timer_hud()
 	{
 		timer SetTimerUp(7.5);
 	} else
-	timer SetTimerUp(1);
+	timer SetTimerUp(1.1);
 }
 
 health_bar_hud()
@@ -6691,7 +6657,6 @@ health_bar_hud()
 	barElem.y = -101;
 	barElem.width = width;
 	barElem.height = height;
-	barElem.frac = 0;
 	barElem.color = (1, 1, 1);
 	barElem.alpha = 0;
 	barElem.shader = "white";
@@ -6700,41 +6665,35 @@ health_bar_hud()
 	level.hudelem_count++;
 	barElem.hidewheninmenu = 1;
 
-	text = NewClientHudElem( self );
-	text.horzAlign = "left";
-	text.vertAlign = "bottom";
-	text.alignX = "left";
-	text.alignY = "bottom";
-	text.x = 49;
-	text.y = -107;
-	text.foreground = true;
-	text.fontScale = 1.3;
-	text.alpha = 0;
-	text.color = ( 1.0, 1.0, 1.0 );
-	level.hudelem_count++;
-	text.hidewheninmenu = 1;
+	health_text = create_hud( "left", "bottom");
+	health_text.x = 49;
+	health_text.y = -107;
 
-	hud_fade_in(text);
+	hud_fade_in(health_text);
 	hud_fade_in(barElem);
 
-	self thread hud_end(text);
+	self thread hud_end(health_text);
 	self thread hud_end(barElem);
 
 	while (1)
 	{
 		barElem updateHealth(self.health / self.maxhealth);
-		text setText(self.health);
+		health_text setValue(self.health);
 
 		if(is_true( self.waiting_to_revive ))
 		{
 			barElem.alpha = 0;
-			text.alpha = 0;
+			health_text.alpha = 0;
+
+			wait 0.05;
+			continue;
 		}
-		else
-		{
-			barElem.alpha = 1;
-			text.alpha = 1;
-		}
+
+		if (health_text.alpha != 1)
+        {
+            barElem.alpha = 1;
+			health_text.alpha = 1;
+        }
 
 		wait 0.05;
 	}
@@ -6743,9 +6702,23 @@ health_bar_hud()
 updateHealth( barFrac )
 {
 	barWidth = int(self.width * barFrac);
-
-	self.frac = barFrac;
 	self setShader( self.shader, barWidth, self.height );
+}
+
+create_hud( side, top )
+{
+	hud = NewClientHudElem( self );
+	hud.horzAlign = side;
+	hud.vertAlign = top;
+	hud.alignX = side;
+	hud.alignY = top;
+	hud.alpha = 0;
+	hud.fontScale = 1.4;
+	hud.color = ( 1.0, 1.0, 1.0 );
+	hud.hidewheninmenu = 1;
+	level.hudelem_count++;
+
+	return hud;
 }
 
 hud_wait()
@@ -6762,7 +6735,6 @@ hud_end( hud )
 
 hud_fade_in( hud )
 {
-	hud fadeOverTime(0.6);
+	hud fadeOverTime(0.5);
 	hud.alpha = 1;
 }
-
