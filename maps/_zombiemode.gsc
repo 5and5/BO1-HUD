@@ -241,7 +241,7 @@ post_all_players_connected()
 		level.music_override = false;
 	}
 
-	//level thread timer_hud();
+	level thread timer_hud();
 
 }
 
@@ -1685,7 +1685,8 @@ onPlayerSpawned()
 				self thread player_grenade_watcher();
 
 				//custom hud
-				//self thread zombies_remaining_hud();
+				self thread zombies_remaining_hud();
+				self thread drop_tracker_hud();
 				self thread health_bar_hud();
 
 			}
@@ -6575,6 +6576,35 @@ set_sidequest_completed(id)
 		{
 			players[i] zombieStatSet( level.zombie_sidequest_coop_stat[id], (players[i] zombieStatGet( level.zombie_sidequest_coop_stat[id] ) + 1) );
 		}
+	}
+}
+
+drop_tracker_hud()
+{
+	self endon("disconnect");
+	self endon("end_game");
+
+	hud_wait();
+
+	drops_text = create_hud( "left", "top" );
+	drops_text.y += 19;
+	drops_text.x += 5;
+	drops_text setText("Drops: ");
+
+	drops_value = create_hud( "left", "top" );
+	drops_value.y += 19;
+	drops_value.x += 43;
+
+	hud_fade_in(drops_text);
+	hud_fade_in(drops_value);
+	self thread hud_end(drops_text);
+	self thread hud_end(drops_value);
+
+	while(1)
+	{
+		drops = level.drop_tracker_index;
+		drops_value setValue(drops);
+		wait 0.05;
 	}
 }
 
